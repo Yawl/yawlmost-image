@@ -18,14 +18,6 @@ jobs:
           echo "SOURCE_IMAGE=ghcr.io/this-is-tobi/mirror/mattermost" >> $GITHUB_ENV
           echo "MM_DIRECTORY=${{ github.workspace }}" >> $GITHUB_ENV
 
-      - name: Get latest tag from source image
-        id: get_latest_tag
-        run: |
-          echo "Fetching the latest tag for $SOURCE_IMAGE..."
-          LATEST_TAG=$(curl -s "https://ghcr.io/v2/this-is-tobi/mirror/mattermost/tags/list" \
-                          | jq -r '.tags | map(select(test("^\\d+\\.\\d+\\.\\d+$"))) | sort | last')
-          echo "latest_tag=$LATEST_TAG" >> $GITHUB_ENV
-
       - name: Build custom Docker image
         run: |
           echo "Building custom Docker image with tag: ${{ env.latest_tag }}"
