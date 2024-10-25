@@ -12,7 +12,7 @@ on:
         description: Target namespace to the given registry
         required: true
         type: string
-        default: yawl-Company/yawlmost-image
+        default: yawl-company/yawlmost-image
       IMAGE_NAME:
         description: Name of the Docker image
         required: true
