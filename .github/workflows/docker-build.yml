@@ -1,4 +1,4 @@
-name: Get Docker Image Tags
+name: Build Custom Docker Image
 
 on:
   schedule:
@@ -6,38 +6,33 @@ on:
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
-  get_tags:
+  build_image:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Set up environment variables
         run: |
-          echo "REPO=ghcr.io/this-is-tobi/mirror/mattermost" >> $GITHUB_ENV
-          echo "GH_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+          echo "SOURCE_IMAGE=ghcr.io/this-is-tobi/mirror/mattermost" >> $GITHUB_ENV
+          echo "MM_DIRECTORY=${{ github.workspace }}" >> $GITHUB_ENV
 
-      - name: Get latest tag from GHCR
+      - name: Get latest tag from source image
         id: get_latest_tag
         run: |
-          echo "Fetching the latest tag for $REPO..."
-          token=$(curl -s "https://ghcr.io/token?service=ghcr.io&scope=repository:${{ env.REPO }}:pull" \
-                       -u "${{ github.actor }}:${{ secrets.GH_TOKEN }}" \
-                  | jq -r '.token')
+          echo "Fetching the latest tag for $SOURCE_IMAGE..."
+          LATEST_TAG=$(curl -s "https://ghcr.io/v2/this-is-tobi/mirror/mattermost/tags/list" \
+                          | jq -r '.tags | map(select(test("^\\d+\\.\\d+\\.\\d+$"))) | sort | last')
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_ENV
 
-          latest_tag=$(curl -H "Authorization: Bearer $token" \
-                           -s "https://ghcr.io/v2/${{ env.REPO }}/tags/list" | \
-                           jq -r '.tags | map(select(test("^\\d+\\.\\d+\\.\\d+$"))) | sort | last')
-          
-          if [ -z "$latest_tag" ]; then
-            echo "No valid tags found."
-            exit 1
-          fi
-
-          echo "Latest tag is $latest_tag"
-          echo "latest_tag=$latest_tag" >> $GITHUB_ENV
-
-      - name: Use the latest tag
+      - name: Build custom Docker image
         run: |
-          echo "The latest Docker image tag is: ${{ env.latest_tag }}"
-          # You can add further steps here to use the latest tag
+          echo "Building custom Docker image with tag: ${{ env.latest_tag }}"
+          docker build -t yawlmost:${{ env.latest_tag }} $MM_DIRECTORY
+
+      - name: Push custom Docker image
+        run: |
+          echo "Pushing custom Docker image yawlmost:${{ env.latest_tag }}"
+          echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker push yawlmost:${{ env.latest_tag }}
