@@ -23,6 +23,11 @@ on:
         required: true
         type: string
         default: latest
+      PLATFORM:
+        description: Target platform for the Docker image
+        required: false
+        type: string
+        default: linux/arm64
 
 permissions:
   contents: read
@@ -50,3 +55,4 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ inputs.REGISTRY }}/${{ inputs.NAMESPACE }}/${{ inputs.IMAGE_NAME }}:${{ inputs.TAG }}
+          platforms: ${{ inputs.PLATFORM }}
