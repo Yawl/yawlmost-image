@@ -12,12 +12,12 @@ on:
         description: Target namespace to the given registry
         required: true
         type: string
-        default: yawl-company/yawlmost-image
+        default: yawl/yawlmost-image
       IMAGE_NAME:
         description: Name of the Docker image
         required: true
         type: string
-        default: yawlmost
+        default: mattermost
       TAG:
         description: Tag for the Docker image
         required: true
